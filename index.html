@@ -198,7 +198,7 @@
             background: #4a4a60;
         }
 
-        .submit-form, .back-button {
+        .submit-form, .back-button, .form-link {
             background: var(--accent-color);
             color: white;
             border: none;
@@ -212,7 +212,7 @@
             margin-top: 10px;
         }
 
-        .submit-form:hover, .back-button:hover {
+        .submit-form:hover, .back-button:hover, .form-link:hover {
             background: var(--accent-hover);
             box-shadow: 0 6px 24px rgba(255, 51, 102, 0.5);
         }
@@ -229,7 +229,6 @@
             border-radius: 12px;
             margin-bottom: 20px;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            cursor: pointer;
         }
 
         .form-card:hover {
@@ -408,7 +407,7 @@
                         stats: []
                     }
                 ],
-                creator: "Яблочный Фанат"
+                creator: "AppleFan"
             }
         ];
 
@@ -548,7 +547,7 @@
                 name,
                 description,
                 questions,
-                creator: tg.initDataUnsafe.user?.username || 'Аноним'
+                creator: tg.initDataUnsafe.user?.username || 'Anonymous'
             };
 
             forms.push(formData);
@@ -591,11 +590,11 @@
             forms.forEach(form => {
                 const formCard = document.createElement('div');
                 formCard.classList.add('form-card', 'hint');
-                formCard.onclick = () => viewForm(form.id);
                 formCard.innerHTML = `
                     <h3>${form.name}</h3>
                     <p>${form.description}</p>
-                    <p style="font-size: 13px; color: #a0a0b0;">Создатель: ${form.creator}</p>
+                    <p style="font-size: 13px; color: #a0a0b0;">Создатель: @${form.creator}</p>
+                    <button class="form-link" onclick="viewForm(${form.id})">Открыть форму</button>
                 `;
                 formsContainer.appendChild(formCard);
                 mainFormsContainer.appendChild(formCard.cloneNode(true));
@@ -681,6 +680,12 @@
             tg.MainButton.show();
             tg.MainButton.setText('Вернуться');
             tg.MainButton.onClick(backToMain);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const formIdFromUrl = urlParams.get('form_id');
+            if (formIdFromUrl && parseInt(formIdFromUrl) === formId) {
+                viewForm(parseInt(formIdFromUrl));
+            }
         }
 
         function submitAnswers() {
@@ -741,6 +746,10 @@
         document.querySelectorAll('.back-button').forEach(btn => btn.onclick = backToMain);
 
         loadForms();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const formIdFromUrl = urlParams.get('form_id');
+        if (formIdFromUrl) viewForm(parseInt(formIdFromUrl));
     </script>
 </body>
 </html>

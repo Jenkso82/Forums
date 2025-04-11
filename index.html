@@ -2,30 +2,29 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Builder Mini App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Form Builder</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #0d0d1b;
-            --text-color: #e6e6ff;
-            --card-bg: #1c1c3e;
-            --accent-color: #ff3366;
-            --accent-hover: #ff5c80;
-            --progress-bg: #2a2a40;
-            --progress-fill: #00cc99;
-            --shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --card-bg: #161b22;
+            --accent-color: #58a6ff;
+            --accent-hover: #79c0ff;
+            --progress-bg: #30363d;
+            --progress-fill: #238636;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+            --border-color: #30363d;
             --tg-theme-bg: var(--tg-theme-bg-color, var(--bg-color));
             --tg-theme-text: var(--tg-theme-text-color, var(--text-color));
         }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'SF Mono', 'Courier New', monospace;
         }
-
         body {
             background: var(--tg-theme-bg);
             color: var(--tg-theme-text);
@@ -33,292 +32,193 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-            overflow-x: hidden;
+            padding: 10px;
+            font-size: 14px;
+            line-height: 1.5;
         }
-
         .container {
-            max-width: 720px;
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            max-width: 600px;
+            padding: 0 10px;
         }
-
         .create-button, .forms-button {
             background: var(--accent-color);
-            color: white;
+            color: #fff;
             border: none;
-            padding: 18px 40px;
-            border-radius: 12px;
-            font-size: 20px;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow);
-            margin: 10px 0;
+            transition: background 0.2s ease;
+            margin: 5px 0;
+            width: 100%;
         }
-
         .create-button:hover, .forms-button:hover {
             background: var(--accent-hover);
-            transform: scale(1.05);
         }
-
-        .create-button {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.03); }
-            100% { transform: scale(1); }
-        }
-
         .form-builder, .forms-list, .form-viewer {
             display: none;
             width: 100%;
             background: var(--card-bg);
-            border-radius: 16px;
-            padding: 30px;
-            margin-top: 20px;
-            box-shadow: var(--shadow);
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 10px;
         }
-
         .form-builder.active, .forms-list.active, .form-viewer.active {
             display: block;
-            opacity: 1;
-            transform: translateY(0);
         }
-
-        .form-builder, .form-viewer, .forms-list {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
         .form-builder input, .form-builder textarea, .form-viewer input, .form-viewer textarea {
             width: 100%;
-            padding: 14px;
-            margin-bottom: 20px;
-            border: none;
-            border-radius: 10px;
-            background: #2a2a40;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: #0d1117;
             color: var(--text-color);
-            font-size: 16px;
-            transition: box-shadow 0.3s ease;
+            font-size: 14px;
         }
-
         .form-builder input:focus, .form-builder textarea:focus, .form-viewer input:focus, .form-viewer textarea:focus {
             outline: none;
-            box-shadow: 0 0 0 4px rgba(255, 51, 102, 0.3);
+            border-color: var(--accent-color);
         }
-
-        .question-section {
-            margin-bottom: 30px;
-        }
-
         .question {
-            background: #2a2a40;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            transition: transform 0.2s ease;
+            background: #21262d;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
         }
-
-        .question:hover {
-            transform: translateX(5px);
-        }
-
         .question input {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
-
         .question select {
             width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            background: #3a3a50;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: #0d1117;
             color: var(--text-color);
-            font-size: 15px;
+            font-size: 14px;
         }
-
         .variant {
             display: flex;
             align-items: center;
             margin-bottom: 10px;
         }
-
         .variant input {
             flex: 1;
             margin-right: 10px;
         }
-
-        .variant button {
-            background: #ff3366;
-            color: white;
+        .variant button, .question button.delete, .add-question, .add-variant, .submit-form, .back-button, .form-link {
+            background: var(--accent-color);
+            color: #fff;
             border: none;
             padding: 8px 16px;
-            border-radius: 8px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
+            transition: background 0.2s ease;
         }
-
-        .variant button:hover {
+        .variant button:hover, .question button.delete:hover, .add-question:hover, .add-variant:hover, .submit-form:hover, .back-button:hover, .form-link:hover {
             background: var(--accent-hover);
         }
-
         .question button.delete {
-            background: #ff3366;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
             margin-top: 10px;
+            background: #d73a49;
         }
-
         .question button.delete:hover {
-            background: var(--accent-hover);
+            background: #f85149;
         }
-
         .add-question, .add-variant {
-            background: #3a3a50;
-            color: var(--text-color);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            font-size: 15px;
+            background: #238636;
+            margin: 5px 0;
         }
-
         .add-question:hover, .add-variant:hover {
-            background: #4a4a60;
+            background: #2ea043;
         }
-
         .submit-form, .back-button, .form-link {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 12px;
-            cursor: pointer;
             width: 100%;
-            font-size: 18px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            padding: 12px;
+            font-size: 14px;
             margin-top: 10px;
         }
-
-        .submit-form:hover, .back-button:hover, .form-link:hover {
-            background: var(--accent-hover);
-            box-shadow: 0 6px 24px rgba(255, 51, 102, 0.5);
-        }
-
         .forms-list h2, .form-viewer h2 {
-            font-size: 24px;
-            margin-bottom: 25px;
-            font-weight: 700;
-        }
-
-        .form-card {
-            background: #2a2a40;
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .form-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
-        }
-
-        .form-card h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
+            font-size: 18px;
+            margin-bottom: 15px;
             color: var(--accent-color);
         }
-
+        .form-card {
+            background: #21262d;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .form-card h3 {
+            font-size: 16px;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+        }
         .form-card p {
-            font-size: 15px;
-            color: #a0a0b0;
+            font-size: 12px;
+            color: #8b949e;
         }
-
-        .form-card.hint {
-            border-left: 4px solid var(--accent-color);
-            padding-left: 20px;
-        }
-
         .notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 10px;
+            right: 10px;
             background: var(--accent-color);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: var(--shadow);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 12px;
             opacity: 0;
-            transform: translateX(100%);
-            transition: all 0.3s ease;
-            font-size: 15px;
+            transition: opacity 0.3s ease;
         }
-
         .notification.active {
             opacity: 1;
-            transform: translateX(0);
         }
-
         .form-viewer .question-view {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
-
         .form-viewer .question-view label {
             display: block;
-            font-size: 17px;
-            margin-bottom: 12px;
-            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: var(--accent-color);
         }
-
         .form-viewer .variant-view {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
-
         .progress-bar {
             background: var(--progress-bg);
-            height: 8px;
-            border-radius: 4px;
+            height: 6px;
+            border-radius: 3px;
             overflow: hidden;
-            margin-top: 10px;
+            margin-top: 5px;
         }
-
         .progress-fill {
             background: var(--progress-fill);
             height: 100%;
             transition: width 0.3s ease;
         }
-
         .variant-stats {
-            font-size: 13px;
-            color: #a0a0b0;
-            margin-top: 5px;
+            font-size: 10px;
+            color: #8b949e;
+            margin-top: 3px;
         }
-
-        @media (max-width: 400px) {
+        @media (max-width: 600px) {
             .container {
+                padding: 0 5px;
+            }
+            .form-builder, .forms-list, .form-viewer {
                 padding: 15px;
             }
-
-            .form-builder, .forms-list, .form-viewer {
-                padding: 25px;
-            }
-
             .create-button, .forms-button {
-                padding: 15px 30px;
-                font-size: 18px;
+                padding: 10px 20px;
+                font-size: 12px;
             }
         }
     </style>
@@ -336,7 +236,6 @@
         <div class="form-builder" id="form-builder">
             <input type="text" id="form-name" placeholder="Название формы">
             <textarea id="form-description" placeholder="Описание формы"></textarea>
-            
             <div class="question-section" id="questions">
                 <div class="question" data-index="0">
                     <input type="text" class="question-title" placeholder="Название вопроса">
@@ -357,7 +256,6 @@
                     <button class="delete" onclick="removeQuestion(0)">Удалить вопрос</button>
                 </div>
             </div>
-            
             <button class="add-question">Добавить вопрос</button>
             <button class="submit-form" id="create-form">Создать форму</button>
         </div>
@@ -384,40 +282,17 @@
         tg.ready();
         tg.expand();
 
-        document.documentElement.style.setProperty('--tg-theme-bg', tg.themeParams.bg_color || '#0d0d1b');
-        document.documentElement.style.setProperty('--tg-theme-text', tg.themeParams.text_color || '#e6e6ff');
+        document.documentElement.style.setProperty('--tg-theme-bg', tg.themeParams.bg_color || '#0d1117');
+        document.documentElement.style.setProperty('--tg-theme-text', tg.themeParams.text_color || '#c9d1d9');
 
         let questionCount = 1;
-        let forms = JSON.parse(localStorage.getItem('forms')) || [
-            {
-                id: 1,
-                name: "Яблочный опрос 🍎",
-                description: "Поделитесь, какие яблоки вы обожаете! Подсказка: подумайте о вкусе, цвете и хрусте.",
-                questions: [
-                    {
-                        title: "Какой сорт яблок ваш любимый?",
-                        type: "radio",
-                        variants: ["Гренни Смит", "Фуджи", "Гала"],
-                        stats: [10, 25, 15]
-                    },
-                    {
-                        title: "Опишите идеальное яблоко",
-                        type: "long_text",
-                        variants: [],
-                        stats: []
-                    }
-                ],
-                creator: "AppleFan"
-            }
-        ];
+        let forms = JSON.parse(localStorage.getItem('forms')) || [];
 
         function showNotification(message) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.classList.add('active');
-            setTimeout(() => {
-                notification.classList.remove('active');
-            }, 3000);
+            setTimeout(() => notification.classList.remove('active'), 2000);
         }
 
         function startFormBuilder() {
@@ -426,7 +301,7 @@
             document.querySelector('.main-list').style.display = 'none';
             document.querySelector('.form-builder').classList.add('active');
             tg.MainButton.show();
-            tg.MainButton.setText('Вернуться');
+            tg.MainButton.setText('Назад');
             tg.MainButton.onClick(backToMain);
         }
 
@@ -436,7 +311,7 @@
             document.querySelector('.main-list').style.display = 'none';
             document.querySelector('.forms-list').classList.add('active');
             tg.MainButton.show();
-            tg.MainButton.setText('Вернуться');
+            tg.MainButton.setText('Назад');
             tg.MainButton.onClick(backToMain);
             loadForms();
         }
@@ -494,11 +369,8 @@
         function removeVariant(questionIndex, variantIndex) {
             const variantsDiv = document.querySelector(`.variants[data-index="${questionIndex}"]`);
             const variants = variantsDiv.querySelectorAll('.variant');
-            if (variants.length > 1) {
-                variants[variantIndex].remove();
-            } else {
-                showNotification('Нельзя удалить последний вариант!');
-            }
+            if (variants.length > 1) variants[variantIndex].remove();
+            else showNotification('Нельзя удалить последний вариант!');
         }
 
         function updateVariants(questionIndex) {
@@ -506,22 +378,14 @@
             const type = question.querySelector('.question-type').value;
             const variantsDiv = question.querySelector('.variants');
             const addVariantBtn = question.querySelector('.add-variant');
-            if (type === 'short_text' || type === 'long_text') {
-                variantsDiv.style.display = 'none';
-                addVariantBtn.style.display = 'none';
-            } else {
-                variantsDiv.style.display = 'block';
-                addVariantBtn.style.display = 'block';
-            }
+            variantsDiv.style.display = type === 'short_text' || type === 'long_text' ? 'none' : 'block';
+            addVariantBtn.style.display = type === 'short_text' || type === 'long_text' ? 'none' : 'block';
         }
 
         function removeQuestion(index) {
             const question = document.querySelector(`.question[data-index="${index}"]`);
-            if (document.querySelectorAll('.question').length > 1) {
-                question.remove();
-            } else {
-                showNotification('Нельзя удалить последний вопрос!');
-            }
+            if (document.querySelectorAll('.question').length > 1) question.remove();
+            else showNotification('Нельзя удалить последний вопрос!');
         }
 
         function createForm() {
@@ -538,7 +402,7 @@
             });
 
             if (!name || !description || questions.some(q => !q.title || (q.type !== 'short_text' && q.type !== 'long_text' && q.variants.length === 0))) {
-                showNotification('Заполните все поля и добавьте варианты для вопросов!');
+                showNotification('Заполните все поля!');
                 return;
             }
 
@@ -553,7 +417,6 @@
             forms.push(formData);
             localStorage.setItem('forms', JSON.stringify(forms));
             tg.sendData(JSON.stringify(formData));
-
             showNotification('Форма создана!');
             document.getElementById('form-name').value = '';
             document.getElementById('form-description').value = '';
@@ -585,16 +448,16 @@
         function loadForms() {
             const formsContainer = document.getElementById('forms-container');
             const mainFormsContainer = document.getElementById('main-forms-container');
-            formsContainer.innerHTML = '';
-            mainFormsContainer.innerHTML = '';
+            formsContainer.innerHTML = forms.length ? '' : '<p>Нет доступных форм</p>';
+            mainFormsContainer.innerHTML = forms.length ? '' : '<p>Нет популярных форм</p>';
             forms.forEach(form => {
                 const formCard = document.createElement('div');
-                formCard.classList.add('form-card', 'hint');
+                formCard.classList.add('form-card');
                 formCard.innerHTML = `
                     <h3>${form.name}</h3>
                     <p>${form.description}</p>
-                    <p style="font-size: 13px; color: #a0a0b0;">Создатель: @${form.creator}</p>
-                    <button class="form-link" onclick="viewForm(${form.id})">Открыть форму</button>
+                    <p>Создатель: @${form.creator}</p>
+                    <button class="form-link" onclick="viewForm(${form.id})">Открыть</button>
                 `;
                 formsContainer.appendChild(formCard);
                 mainFormsContainer.appendChild(formCard.cloneNode(true));
@@ -621,11 +484,9 @@
                 const questionDiv = document.createElement('div');
                 questionDiv.classList.add('question-view');
                 let content = `<label>${q.title}</label>`;
-                if (q.type === 'short_text') {
-                    content += '<input type="text" placeholder="Ваш ответ">';
-                } else if (q.type === 'long_text') {
-                    content += '<textarea placeholder="Ваш ответ"></textarea>';
-                } else if (q.type === 'radio') {
+                if (q.type === 'short_text') content += '<input type="text" placeholder="Ваш ответ">';
+                else if (q.type === 'long_text') content += '<textarea placeholder="Ваш ответ"></textarea>';
+                else if (q.type === 'radio') {
                     const totalVotes = q.stats.reduce((a, b) => a + b, 0) || 1;
                     q.variants.forEach((v, i) => {
                         const percentage = ((q.stats[i] || 0) / totalVotes * 100).toFixed(1);
@@ -635,7 +496,7 @@
                                 <div class="progress-bar">
                                     <div class="progress-fill" style="width: ${percentage}%"></div>
                                 </div>
-                                <div class="variant-stats">${q.stats[i] || 0} голосов (${percentage}%)</div>
+                                <div class="variant-stats">${q.stats[i] || 0} (${percentage}%)</div>
                             </div>
                         `;
                     });
@@ -649,16 +510,14 @@
                                 <div class="progress-bar">
                                     <div class="progress-fill" style="width: ${percentage}%"></div>
                                 </div>
-                                <div class="variant-stats">${q.stats[i] || 0} голосов (${percentage}%)</div>
+                                <div class="variant-stats">${q.stats[i] || 0} (${percentage}%)</div>
                             </div>
                         `;
                     });
                 } else if (q.type === 'dropdown') {
                     const totalVotes = q.stats.reduce((a, b) => a + b, 0) || 1;
                     content += `<select name="q${index}">`;
-                    q.variants.forEach((v, i) => {
-                        content += `<option value="${v}">${v}</option>`;
-                    });
+                    q.variants.forEach(v => content += `<option value="${v}">${v}</option>`);
                     content += `</select>`;
                     q.variants.forEach((v, i) => {
                         const percentage = ((q.stats[i] || 0) / totalVotes * 100).toFixed(1);
@@ -668,7 +527,7 @@
                                 <div class="progress-bar">
                                     <div class="progress-fill" style="width: ${percentage}%"></div>
                                 </div>
-                                <div class="variant-stats">${q.stats[i] || 0} голосов (${percentage}%)</div>
+                                <div class="variant-stats">${q.stats[i] || 0} (${percentage}%)</div>
                             </div>
                         `;
                     });
@@ -678,14 +537,12 @@
             });
 
             tg.MainButton.show();
-            tg.MainButton.setText('Вернуться');
+            tg.MainButton.setText('Назад');
             tg.MainButton.onClick(backToMain);
 
             const urlParams = new URLSearchParams(window.location.search);
             const formIdFromUrl = urlParams.get('form_id');
-            if (formIdFromUrl && parseInt(formIdFromUrl) === formId) {
-                viewForm(parseInt(formIdFromUrl));
-            }
+            if (formIdFromUrl && parseInt(formIdFromUrl) === formId) viewForm(parseInt(formIdFromUrl));
         }
 
         function submitAnswers() {
@@ -727,8 +584,8 @@
                 }
             });
 
-            if (answers.length === 0) {
-                showNotification('Выберите хотя бы один вариант или введите ответ!');
+            if (!answers.length) {
+                showNotification('Выберите или введите ответ!');
                 return;
             }
 

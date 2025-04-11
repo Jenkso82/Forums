@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Builder Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #0d0d1b;
+            --text-color: #e6e6ff;
+            --card-bg: #1c1c3e;
+            --accent-color: #ff3366;
+            --accent-hover: #ff5c80;
+            --progress-bg: #2a2a40;
+            --progress-fill: #00cc99;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+            --tg-theme-bg: var(--tg-theme-bg-color, var(--bg-color));
+            --tg-theme-text: var(--tg-theme-text-color, var(--text-color));
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: var(--tg-theme-bg);
+            color: var(--tg-theme-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 720px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .create-button, .forms-button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            margin: 10px 0;
+        }
+
+        .create-button:hover, .forms-button:hover {
+            background: var(--accent-hover);
+            transform: scale(1.05);
+        }
+
+        .create-button {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        .form-builder, .forms-list, .form-viewer {
+            display: none;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .form-builder.active, .forms-list.active, .form-viewer.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .form-builder, .form-viewer, .forms-list {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .form-builder input, .form-builder textarea, .form-viewer input, .form-viewer textarea {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 10px;
+            background: #2a2a40;
+            color: var(--text-color);
+            font-size: 16px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .form-builder input:focus, .form-builder textarea:focus, .form-viewer input:focus, .form-viewer textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(255, 51, 102, 0.3);
+        }
+
+        .question-section {
+            margin-bottom: 30px;
+        }
+
+        .question {
+            background: #2a2a40;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .question:hover {
+            transform: translateX(5px);
+        }
+
+        .question input {
+            margin-bottom: 15px;
+        }
+
+        .question select {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #3a3a50;
+            color: var(--text-color);
+            font-size: 15px;
+        }
+
+        .variant {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .variant input {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .variant button {
+            background: #ff3366;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .variant button:hover {
+            background: var(--accent-hover);
+        }
+
+        .question button.delete {
+            background: #ff3366;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 10px;
+        }
+
+        .question button.delete:hover {
+            background: var(--accent-hover);
+        }
+
+        .add-question, .add-variant {
+            background: #3a3a50;
+            color: var(--text-color);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        .add-question:hover, .add-variant:hover {
+            background: #4a4a60;
+        }
+
+        .submit-form, .back-button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .submit-form:hover, .back-button:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 6px 24px rgba(255, 51, 102, 0.5);
+        }
+
+        .forms-list h2, .form-viewer h2 {
+            font-size: 24px;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        .form-card {
+            background: #2a2a40;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+
+        .form-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .form-card h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .form-card p {
+            font-size: 15px;
+            color: #a0a0b0;
+        }
+
+        .form-card.hint {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--accent-color);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            font-size: 15px;
+        }
+
+        .notification.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .form-viewer .question-view {
+            margin-bottom: 25px;
+        }
+
+        .form-viewer .question-view label {
+            display: block;
+            font-size: 17px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .form-viewer .variant-view {
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            background: var(--progress-bg);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            background: var(--progress-fill);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .variant-stats {
+            font-size: 13px;
+            color: #a0a0b0;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 400px) {
+            .container {
+                padding: 15px;
+            }
+
+            .form-builder, .forms-list, .form-viewer {
+                padding: 25px;
+            }
+
+            .create-button, .forms-button {
+                padding: 15px 30px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="create-button">Создать форму</button>
+        <button class="forms-button">Доступные формы</button>
+        
+        <div class="forms-list main-list" id="main-list">
+            <h2>Популярные формы</h2>
+            <div id="main-forms-container"></div>
+        </div>
+        
+        <div class="form-builder" id="form-builder">
+            <input type="text" id="form-name" placeholder="Название формы">
+            <textarea id="form-description" placeholder="Описание формы"></textarea>
+            
+            <div class="question-section" id="questions">
+                <div class="question" data-index="0">
+                    <input type="text" class="question-title" placeholder="Название вопроса">
+                    <select class="question-type" onchange="updateVariants(0)">
+                        <option value="short_text">Короткий текст</option>
+                        <option value="long_text">Длинный текст</option>
+                        <option value="radio">Один выбор</option>
+                        <option value="checkbox">Множественный выбор</option>
+                        <option value="dropdown">Выпадающий список</option>
+                    </select>
+                    <div class="variants" data-index="0">
+                        <div class="variant">
+                            <input type="text" class="variant-title" placeholder="Вариант ответа">
+                            <button onclick="removeVariant(0, 0)">Удалить</button>
+                        </div>
+                    </div>
+                    <button class="add-variant" onclick="addVariant(0)">Добавить вариант</button>
+                    <button class="delete" onclick="removeQuestion(0)">Удалить вопрос</button>
+                </div>
+            </div>
+            
+            <button class="add-question">Добавить вопрос</button>
+            <button class="submit-form" id="create-form">Создать форму</button>
+        </div>
+
+        <div class="forms-list" id="forms-list">
+            <h2>Доступные формы</h2>
+            <div id="forms-container"></div>
+            <button class="back-button">Назад</button>
+        </div>
+
+        <div class="form-viewer" id="form-viewer">
+            <h2 id="viewer-title"></h2>
+            <p id="viewer-description"></p>
+            <div id="viewer-questions"></div>
+            <button class="submit-form" id="submit-answers">Отправить ответы</button>
+            <button class="back-button">Назад</button>
+        </div>
+
+        <div class="notification" id="notification"></div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        document.documentElement.style.setProperty('--tg-theme-bg', tg.themeParams.bg_color || '#0d0d1b');
+        document.documentElement.style.setProperty('--tg-theme-text', tg.themeParams.text_color || '#e6e6ff');
+
+        let questionCount = 1;
+        let forms = JSON.parse(localStorage.getItem('forms')) || [
+            {
+                id: 1,
+                name: "Яблочный опрос 🍎",
+                description: "Поделитесь, какие яблоки вы обожаете! Подсказка: подумайте о вкусе, цвете и хрусте.",
+                questions: [
+                    {
+                        title: "Какой сорт яблок ваш любимый?",
+                        type: "radio",
+                        variants: ["Гренни Смит", "Фуджи", "Гала"],
+                        stats: [10, 25, 15]
+                    },
+                    {
+                        title: "Опишите идеальное яблоко",
+                        type: "long_text",
+                        variants: [],
+                        stats: []
+                    }
+                ],
+                creator: "Яблочный Фанат"
+            }
+        ];
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('active');
+            setTimeout(() => {
+                notification.classList.remove('active');
+            }, 3000);
+        }
+
+        function startFormBuilder() {
+            document.querySelector('.create-button').style.display = 'none';
+            document.querySelector('.forms-button').style.display = 'none';
+            document.querySelector('.main-list').style.display = 'none';
+            document.querySelector('.form-builder').classList.add('active');
+            tg.MainButton.show();
+            tg.MainButton.setText('Вернуться');
+            tg.MainButton.onClick(backToMain);
+        }
+
+        function showFormsList() {
+            document.querySelector('.create-button').style.display = 'none';
+            document.querySelector('.forms-button').style.display = 'none';
+            document.querySelector('.main-list').style.display = 'none';
+            document.querySelector('.forms-list').classList.add('active');
+            tg.MainButton.show();
+            tg.MainButton.setText('Вернуться');
+            tg.MainButton.onClick(backToMain);
+            loadForms();
+        }
+
+        function backToMain() {
+            document.querySelector('.create-button').style.display = 'block';
+            document.querySelector('.forms-button').style.display = 'block';
+            document.querySelector('.main-list').style.display = 'block';
+            document.querySelector('.form-builder').classList.remove('active');
+            document.querySelector('.forms-list').classList.remove('active');
+            document.querySelector('.form-viewer').classList.remove('active');
+            tg.MainButton.hide();
+        }
+
+        function addQuestion() {
+            const questionsDiv = document.getElementById('questions');
+            const newQuestion = document.createElement('div');
+            newQuestion.classList.add('question');
+            newQuestion.dataset.index = questionCount;
+            newQuestion.innerHTML = `
+                <input type="text" class="question-title" placeholder="Название вопроса">
+                <select class="question-type" onchange="updateVariants(${questionCount})">
+                    <option value="short_text">Короткий текст</option>
+                    <option value="long_text">Длинный текст</option>
+                    <option value="radio">Один выбор</option>
+                    <option value="checkbox">Множественный выбор</option>
+                    <option value="dropdown">Выпадающий список</option>
+                </select>
+                <div class="variants" data-index="${questionCount}">
+                    <div class="variant">
+                        <input type="text" class="variant-title" placeholder="Вариант ответа">
+                        <button onclick="removeVariant(${questionCount}, 0)">Удалить</button>
+                    </div>
+                </div>
+                <button class="add-variant" onclick="addVariant(${questionCount})">Добавить вариант</button>
+                <button class="delete" onclick="removeQuestion(${questionCount})">Удалить вопрос</button>
+            `;
+            questionsDiv.appendChild(newQuestion);
+            updateVariants(questionCount);
+            questionCount++;
+        }
+
+        function addVariant(questionIndex) {
+            const variantsDiv = document.querySelector(`.variants[data-index="${questionIndex}"]`);
+            const variantCount = variantsDiv.querySelectorAll('.variant').length;
+            const newVariant = document.createElement('div');
+            newVariant.classList.add('variant');
+            newVariant.innerHTML = `
+                <input type="text" class="variant-title" placeholder="Вариант ответа">
+                <button onclick="removeVariant(${questionIndex}, ${variantCount})">Удалить</button>
+            `;
+            variantsDiv.appendChild(newVariant);
+        }
+
+        function removeVariant(questionIndex, variantIndex) {
+            const variantsDiv = document.querySelector(`.variants[data-index="${questionIndex}"]`);
+            const variants = variantsDiv.querySelectorAll('.variant');
+            if (variants.length > 1) {
+                variants[variantIndex].remove();
+            } else {
+                showNotification('Нельзя удалить последний вариант!');
+            }
+        }
+
+        function updateVariants(questionIndex) {
+            const question = document.querySelector(`.question[data-index="${questionIndex}"]`);
+            const type = question.querySelector('.question-type').value;
+            const variantsDiv = question.querySelector('.variants');
+            const addVariantBtn = question.querySelector('.add-variant');
+            if (type === 'short_text' || type === 'long_text') {
+                variantsDiv.style.display = 'none';
+                addVariantBtn.style.display = 'none';
+            } else {
+                variantsDiv.style.display = 'block';
+                addVariantBtn.style.display = 'block';
+            }
+        }
+
+        function removeQuestion(index) {
+            const question = document.querySelector(`.question[data-index="${index}"]`);
+            if (document.querySelectorAll('.question').length > 1) {
+                question.remove();
+            } else {
+                showNotification('Нельзя удалить последний вопрос!');
+            }
+        }
+
+        function createForm() {
+            const name = document.getElementById('form-name').value.trim();
+            const description = document.getElementById('form-description').value.trim();
+            const questions = Array.from(document.querySelectorAll('.question')).map(q => {
+                const type = q.querySelector('.question-type').value;
+                return {
+                    title: q.querySelector('.question-title').value.trim(),
+                    type,
+                    variants: type !== 'short_text' && type !== 'long_text' ? Array.from(q.querySelectorAll('.variant-title')).map(v => v.value.trim()).filter(v => v) : [],
+                    stats: []
+                };
+            });
+
+            if (!name || !description || questions.some(q => !q.title || (q.type !== 'short_text' && q.type !== 'long_text' && q.variants.length === 0))) {
+                showNotification('Заполните все поля и добавьте варианты для вопросов!');
+                return;
+            }
+
+            const formData = {
+                id: Date.now(),
+                name,
+                description,
+                questions,
+                creator: tg.initDataUnsafe.user?.username || 'Аноним'
+            };
+
+            forms.push(formData);
+            localStorage.setItem('forms', JSON.stringify(forms));
+            tg.sendData(JSON.stringify(formData));
+
+            showNotification('Форма создана!');
+            document.getElementById('form-name').value = '';
+            document.getElementById('form-description').value = '';
+            document.getElementById('questions').innerHTML = `
+                <div class="question" data-index="0">
+                    <input type="text" class="question-title" placeholder="Название вопроса">
+                    <select class="question-type" onchange="updateVariants(0)">
+                        <option value="short_text">Короткий текст</option>
+                        <option value="long_text">Длинный текст</option>
+                        <option value="radio">Один выбор</option>
+                        <option value="checkbox">Множественный выбор</option>
+                        <option value="dropdown">Выпадающий список</option>
+                    </select>
+                    <div class="variants" data-index="0">
+                        <div class="variant">
+                            <input type="text" class="variant-title" placeholder="Вариант ответа">
+                            <button onclick="removeVariant(0, 0)">Удалить</button>
+                        </div>
+                    </div>
+                    <button class="add-variant" onclick="addVariant(0)">Добавить вариант</button>
+                    <button class="delete" onclick="removeQuestion(0)">Удалить вопрос</button>
+                </div>
+            `;
+            questionCount = 1;
+            loadForms();
+            backToMain();
+        }
+
+        function loadForms() {
+            const formsContainer = document.getElementById('forms-container');
+            const mainFormsContainer = document.getElementById('main-forms-container');
+            formsContainer.innerHTML = '';
+            mainFormsContainer.innerHTML = '';
+            forms.forEach(form => {
+                const formCard = document.createElement('div');
+                formCard.classList.add('form-card', 'hint');
+                formCard.onclick = () => viewForm(form.id);
+                formCard.innerHTML = `
+                    <h3>${form.name}</h3>
+                    <p>${form.description}</p>
+                    <p style="font-size: 13px; color: #a0a0b0;">Создатель: ${form.creator}</p>
+                `;
+                formsContainer.appendChild(formCard);
+                mainFormsContainer.appendChild(formCard.cloneNode(true));
+            });
+        }
+
+        function viewForm(formId) {
+            const form = forms.find(f => f.id === formId);
+            if (!form) return;
+
+            document.querySelector('.create-button').style.display = 'none';
+            document.querySelector('.forms-button').style.display = 'none';
+            document.querySelector('.main-list').style.display = 'none';
+            document.querySelector('.form-builder').classList.remove('active');
+            document.querySelector('.forms-list').classList.remove('active');
+            document.querySelector('.form-viewer').classList.add('active');
+
+            document.getElementById('viewer-title').textContent = form.name;
+            document.getElementById('viewer-description').textContent = form.description;
+
+            const questionsDiv = document.getElementById('viewer-questions');
+            questionsDiv.innerHTML = '';
+            form.questions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question-view');
+                let content = `<label>${q.title}</label>`;
+                if (q.type === 'short_text') {
+                    content += '<input type="text" placeholder="Ваш ответ">';
+                } else if (q.type === 'long_text') {
+                    content += '<textarea placeholder="Ваш ответ"></textarea>';
+                } else if (q.type === 'radio') {
+                    const totalVotes = q.stats.reduce((a, b) => a + b, 0) || 1;
+                    q.variants.forEach((v, i) => {
+                        const percentage = ((q.stats[i] || 0) / totalVotes * 100).toFixed(1);
+                        content += `
+                            <div class="variant-view">
+                                <input type="radio" name="q${index}" value="${v}"> ${v}
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${percentage}%"></div>
+                                </div>
+                                <div class="variant-stats">${q.stats[i] || 0} голосов (${percentage}%)</div>
+                            </div>
+                        `;
+                    });
+                } else if (q.type === 'checkbox') {
+                    const totalVotes = q.stats.reduce((a, b) => a + b, 0) || 1;
+                    q.variants.forEach((v, i) => {
+                        const percentage = ((q.stats[i] || 0) / totalVotes * 100).toFixed(1);
+                        content += `
+                            <div class="variant-view">
+                                <input type="checkbox" name="q${index}" value="${v}"> ${v}
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${percentage}%"></div>
+                                </div>
+                                <div class="variant-stats">${q.stats[i] || 0} голосов (${percentage}%)</div>
+                            </div>
+                        `;
+                    });
+                } else if (q.type === 'dropdown') {
+                    const totalVotes = q.stats.reduce((a, b) => a + b, 0) || 1;
+                    content += `<select name="q${index}">`;
+                    q.variants.forEach((v, i) => {
+                        content += `<option value="${v}">${v}</option>`;
+                    });
+                    content += `</select>`;
+                    q.variants.forEach((v, i) => {
+                        const percentage = ((q.stats[i] || 0) / totalVotes * 100).toFixed(1);
+                        content += `
+                            <div class="variant-view">
+                                <span>${v}</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${percentage}%"></div>
+                                </div>
+                                <div class="variant-stats">${q.stats[i] || 0} голосов (${percentage}%)</div>
+                            </div>
+                        `;
+                    });
+                }
+                questionDiv.innerHTML = content;
+                questionsDiv.appendChild(questionDiv);
+            });
+
+            tg.MainButton.show();
+            tg.MainButton.setText('Вернуться');
+            tg.MainButton.onClick(backToMain);
+        }
+
+        function submitAnswers() {
+            const formViewer = document.querySelector('.form-viewer');
+            const formId = forms.find(f => f.name === document.getElementById('viewer-title').textContent)?.id;
+            const form = forms.find(f => f.id === formId);
+            if (!form) return;
+
+            const answers = [];
+            form.questions.forEach((q, index) => {
+                if (q.type === 'short_text') {
+                    const answer = formViewer.querySelector(`input[type="text"]:nth-of-type(${index + 1})`)?.value.trim();
+                    if (answer) answers.push({ question: q.title, answer });
+                } else if (q.type === 'long_text') {
+                    const answer = formViewer.querySelector(`textarea:nth-of-type(${index + 1})`)?.value.trim();
+                    if (answer) answers.push({ question: q.title, answer });
+                } else if (q.type === 'radio') {
+                    const selected = formViewer.querySelector(`input[name="q${index}"]:checked`)?.value;
+                    if (selected) {
+                        const variantIndex = q.variants.indexOf(selected);
+                        q.stats[variantIndex] = (q.stats[variantIndex] || 0) + 1;
+                        answers.push({ question: q.title, answer: selected });
+                    }
+                } else if (q.type === 'checkbox') {
+                    const selected = Array.from(formViewer.querySelectorAll(`input[name="q${index}"]:checked`)).map(input => {
+                        const value = input.value;
+                        const variantIndex = q.variants.indexOf(value);
+                        q.stats[variantIndex] = (q.stats[variantIndex] || 0) + 1;
+                        return value;
+                    });
+                    if (selected.length) answers.push({ question: q.title, answer: selected });
+                } else if (q.type === 'dropdown') {
+                    const selected = formViewer.querySelector(`select[name="q${index}"]`)?.value;
+                    if (selected) {
+                        const variantIndex = q.variants.indexOf(selected);
+                        q.stats[variantIndex] = (q.stats[variantIndex] || 0) + 1;
+                        answers.push({ question: q.title, answer: selected });
+                    }
+                }
+            });
+
+            if (answers.length === 0) {
+                showNotification('Выберите хотя бы один вариант или введите ответ!');
+                return;
+            }
+
+            localStorage.setItem('forms', JSON.stringify(forms));
+            tg.sendData(JSON.stringify({ formId, answers }));
+            showNotification('Ответы отправлены!');
+            loadForms();
+            viewForm(formId);
+        }
+
+        document.querySelector('.create-button').onclick = startFormBuilder;
+        document.querySelector('.forms-button').onclick = showFormsList;
+        document.querySelector('#create-form').onclick = createForm;
+        document.querySelector('#submit-answers').onclick = submitAnswers;
+        document.querySelectorAll('.back-button').forEach(btn => btn.onclick = backToMain);
+
+        loadForms();
+    </script>
+</body>
+</html>

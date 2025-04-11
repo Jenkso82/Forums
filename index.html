@@ -41,7 +41,7 @@
             max-width: 600px;
             padding: 0 10px;
         }
-        .create-button, .forms-button {
+        .create-button, .forms-button, .created-forms-button {
             background: var(--accent-color);
             color: #fff;
             border: none;
@@ -54,10 +54,10 @@
             margin: 5px 0;
             width: 100%;
         }
-        .create-button:hover, .forms-button:hover {
+        .create-button:hover, .forms-button:hover, .created-forms-button:hover {
             background: var(--accent-hover);
         }
-        .form-builder, .forms-list, .form-viewer {
+        .form-builder, .forms-list, .form-viewer, .created-forms-list {
             display: none;
             width: 100%;
             background: var(--card-bg);
@@ -66,7 +66,7 @@
             padding: 20px;
             margin-top: 10px;
         }
-        .form-builder.active, .forms-list.active, .form-viewer.active {
+        .form-builder.active, .forms-list.active, .form-viewer.active, .created-forms-list.active {
             display: block;
         }
         .form-builder input, .form-builder textarea, .form-viewer input, .form-viewer textarea {
@@ -144,7 +144,7 @@
             font-size: 14px;
             margin-top: 10px;
         }
-        .forms-list h2, .form-viewer h2 {
+        .forms-list h2, .form-viewer h2, .created-forms-list h2 {
             font-size: 18px;
             margin-bottom: 15px;
             color: var(--accent-color);
@@ -213,10 +213,10 @@
             .container {
                 padding: 0 5px;
             }
-            .form-builder, .forms-list, .form-viewer {
+            .form-builder, .forms-list, .form-viewer, .created-forms-list {
                 padding: 15px;
             }
-            .create-button, .forms-button {
+            .create-button, .forms-button, .created-forms-button {
                 padding: 10px 20px;
                 font-size: 12px;
             }
@@ -227,6 +227,7 @@
     <div class="container">
         <button class="create-button">Создать форму</button>
         <button class="forms-button">Доступные формы</button>
+        <button class="created-forms-button">Созданные формы</button>
         
         <div class="forms-list main-list" id="main-list">
             <h2>Популярные формы</h2>
@@ -266,6 +267,12 @@
             <button class="back-button">Назад</button>
         </div>
 
+        <div class="created-forms-list" id="created-forms-list">
+            <h2>Созданные формы</h2>
+            <div id="created-forms-container"></div>
+            <button class="back-button">Назад</button>
+        </div>
+
         <div class="form-viewer" id="form-viewer">
             <h2 id="viewer-title"></h2>
             <p id="viewer-description"></p>
@@ -298,6 +305,7 @@
         function startFormBuilder() {
             document.querySelector('.create-button').style.display = 'none';
             document.querySelector('.forms-button').style.display = 'none';
+            document.querySelector('.created-forms-button').style.display = 'none';
             document.querySelector('.main-list').style.display = 'none';
             document.querySelector('.form-builder').classList.add('active');
             tg.MainButton.show();
@@ -308,6 +316,7 @@
         function showFormsList() {
             document.querySelector('.create-button').style.display = 'none';
             document.querySelector('.forms-button').style.display = 'none';
+            document.querySelector('.created-forms-button').style.display = 'none';
             document.querySelector('.main-list').style.display = 'none';
             document.querySelector('.forms-list').classList.add('active');
             tg.MainButton.show();
@@ -316,12 +325,26 @@
             loadForms();
         }
 
+        function showCreatedFormsList() {
+            document.querySelector('.create-button').style.display = 'none';
+            document.querySelector('.forms-button').style.display = 'none';
+            document.querySelector('.created-forms-button').style.display = 'none';
+            document.querySelector('.main-list').style.display = 'none';
+            document.querySelector('.created-forms-list').classList.add('active');
+            tg.MainButton.show();
+            tg.MainButton.setText('Назад');
+            tg.MainButton.onClick(backToMain);
+            loadCreatedForms();
+        }
+
         function backToMain() {
             document.querySelector('.create-button').style.display = 'block';
             document.querySelector('.forms-button').style.display = 'block';
+            document.querySelector('.created-forms-button').style.display = 'block';
             document.querySelector('.main-list').style.display = 'block';
             document.querySelector('.form-builder').classList.remove('active');
             document.querySelector('.forms-list').classList.remove('active');
+            document.querySelector('.created-forms-list').classList.remove('active');
             document.querySelector('.form-viewer').classList.remove('active');
             tg.MainButton.hide();
         }
@@ -442,7 +465,8 @@
             `;
             questionCount = 1;
             loadForms();
-            backToMain();
+            loadCreatedForms();
+            showCreatedFormsList();
         }
 
         function loadForms() {
@@ -464,15 +488,34 @@
             });
         }
 
+        function loadCreatedForms() {
+            const createdFormsContainer = document.getElementById('created-forms-container');
+            const userForms = forms.filter(f => f.creator === (tg.initDataUnsafe.user?.username || 'Anonymous'));
+            createdFormsContainer.innerHTML = userForms.length ? '' : '<p>Вы еще не создали формы</p>';
+            userForms.forEach(form => {
+                const formCard = document.createElement('div');
+                formCard.classList.add('form-card');
+                formCard.innerHTML = `
+                    <h3>${form.name}</h3>
+                    <p>${form.description}</p>
+                    <p>ID: ${form.id}</p>
+                    <button class="form-link" onclick="viewForm(${form.id})">Просмотреть</button>
+                `;
+                createdFormsContainer.appendChild(formCard);
+            });
+        }
+
         function viewForm(formId) {
             const form = forms.find(f => f.id === formId);
             if (!form) return;
 
             document.querySelector('.create-button').style.display = 'none';
             document.querySelector('.forms-button').style.display = 'none';
+            document.querySelector('.created-forms-button').style.display = 'none';
             document.querySelector('.main-list').style.display = 'none';
             document.querySelector('.form-builder').classList.remove('active');
             document.querySelector('.forms-list').classList.remove('active');
+            document.querySelector('.created-forms-list').classList.remove('active');
             document.querySelector('.form-viewer').classList.add('active');
 
             document.getElementById('viewer-title').textContent = form.name;
@@ -593,16 +636,19 @@
             tg.sendData(JSON.stringify({ formId, answers }));
             showNotification('Ответы отправлены!');
             loadForms();
+            loadCreatedForms();
             viewForm(formId);
         }
 
         document.querySelector('.create-button').onclick = startFormBuilder;
         document.querySelector('.forms-button').onclick = showFormsList;
+        document.querySelector('.created-forms-button').onclick = showCreatedFormsList;
         document.querySelector('#create-form').onclick = createForm;
         document.querySelector('#submit-answers').onclick = submitAnswers;
         document.querySelectorAll('.back-button').forEach(btn => btn.onclick = backToMain);
 
         loadForms();
+        loadCreatedForms();
 
         const urlParams = new URLSearchParams(window.location.search);
         const formIdFromUrl = urlParams.get('form_id');
